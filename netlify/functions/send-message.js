@@ -37,6 +37,10 @@ exports.handler = async (event, context) => {
     }
 
     try {
+        if (!process.env.MONGODB_URI) {
+            return { statusCode: 500, headers, body: JSON.stringify({ success: false, message: 'MONGODB_URI not configured' }) };
+        }
+
         await connectDB();
 
         const { name, email, message } = JSON.parse(event.body);
@@ -64,11 +68,11 @@ exports.handler = async (event, context) => {
             body: JSON.stringify({ success: true, message: 'Message sent successfully' })
         };
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error:', error.message);
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ success: false, message: 'Error sending message. Please try again.' })
+            body: JSON.stringify({ success: false, message: 'Error: ' + error.message })
         };
     }
 };
