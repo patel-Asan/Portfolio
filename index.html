@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
     <!-- Preloader -->
@@ -876,11 +875,6 @@
                     
                     <!-- Status Message -->
                     <div id="formStatus" class="form-status"></div>
-                    
-                    <!-- Auto-save indicator -->
-                    <div class="autosave-status" id="autosaveStatus">
-                        <i class="fas fa-check-circle"></i> Draft saved
-                    </div>
                 </form>
             </div>
         </div>
@@ -980,6 +974,8 @@
 
     <!-- Scripts -->
     <script>
+        const API_URL = 'https://portfolio-kjkrp23fa-asans-projects-69ce1902.vercel.app';
+
         // Navbar scroll effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
@@ -1814,7 +1810,7 @@
             };
 
             try {
-                const response = await fetch('https://portfolio-kjkrp23fa-asans-projects-69ce1902.vercel.app/api/messages', {
+                const response = await fetch(`${API_URL}/api/messages`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
