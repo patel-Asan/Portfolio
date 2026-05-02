@@ -24,11 +24,12 @@ const auth = (req) => {
     return jwt.verify(header.replace('Bearer ', ''), process.env.JWT_SECRET || 'your-secret-key');
 };
 
+const cors = require('cors');
+
 module.exports = async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') return res.status(204).end();
+    await new Promise(resolve => cors({ origin: '*' })(req, res, resolve));
+
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
         auth(req);

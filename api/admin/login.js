@@ -17,11 +17,12 @@ const userSchema = new mongoose.Schema({
 userSchema.methods.comparePassword = async function(pwd) { return bcrypt.compare(pwd, this.password); };
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
+const cors = require('cors');
+
 module.exports = async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    if (req.method === 'OPTIONS') return res.status(204).end();
+    await new Promise(resolve => cors({ origin: '*' })(req, res, resolve));
+
+    if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method Not Allowed' });
 
     try {
