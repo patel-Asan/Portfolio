@@ -24,37 +24,59 @@ const auth = (req) => {
     return jwt.verify(header.replace('Bearer ', ''), process.env.JWT_SECRET || 'your-secret-key');
 };
 
-const cors = require('cors');
-
 module.exports = async (req, res) => {
-    await new Promise(resolve => cors({ origin: '*' })(req, res, resolve));
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method === 'OPTIONS') {
+        res.statusCode = 200;
+        res.end();
+        return;
+    }
 
     try {
         auth(req);
         await connect();
 
-        if (req.method === 'GET' && !req.url.includes('/messages/')) {
+        if (req.method === 'GET') {
             const messages = await Message.find().sort({ createdAt: -1 });
-            return res.json({ success: true, messages });
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: true, messages }));
+            return;
         }
 
         const id = req.url.split('/').pop().split('?')[0];
-        if (!id) return res.status(400).json({ success: false, message: 'ID required' });
+        if (!id) {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: false, message: 'ID required' }));
+            return;
+        }
 
         if (req.method === 'PATCH') {
             const msg = await Message.findByIdAndUpdate(id, { status: req.body.status }, { new: true });
-            return res.json({ success: true, message: msg });
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: true, message: msg }));
+            return;
         }
 
         if (req.method === 'DELETE') {
             await Message.findByIdAndDelete(id);
-            return res.json({ success: true, message: 'Message deleted' });
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: true, message: 'Message deleted' }));
+            return;
         }
 
-        res.status(405).json({ success: false, error: 'Method Not Allowed' });
+        res.statusCode = 405;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ success: false, error: 'Method Not Allowed' }));
     } catch (e) {
-        res.status(e.message.includes('jwt') || e.message === 'No token' ? 401 : 500).json({ success: false, error: e.message });
+        res.statusCode = e.message.includes('jwt') || e.message === 'No token' ? 401 : 500;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ success: false, error: e.message }));
     }
 };

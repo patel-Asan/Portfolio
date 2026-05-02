@@ -17,26 +17,50 @@ const userSchema = new mongoose.Schema({
 userSchema.methods.comparePassword = async function(pwd) { return bcrypt.compare(pwd, this.password); };
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
-const cors = require('cors');
-
 module.exports = async (req, res) => {
-    await new Promise(resolve => cors({ origin: '*' })(req, res, resolve));
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
-    if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+    if (req.method === 'OPTIONS') {
+        res.statusCode = 200;
+        res.end();
+        return;
+    }
+
+    if (req.method !== 'POST') {
+        res.statusCode = 405;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ success: false, error: 'Method Not Allowed' }));
+        return;
+    }
 
     try {
         await connect();
         const { username, password } = req.body;
         const user = await User.findOne({ username });
-        if (!user) return res.status(401).json({ success: false, error: 'Invalid credentials' });
+        if (!user) {
+            res.statusCode = 401;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: false, error: 'Invalid credentials' }));
+            return;
+        }
 
         const isMatch = await user.comparePassword(password);
-        if (!isMatch) return res.status(401).json({ success: false, error: 'Invalid credentials' });
+        if (!isMatch) {
+            res.statusCode = 401;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: false, error: 'Invalid credentials' }));
+            return;
+        }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
-        res.json({ success: true, token, message: 'Login successful' });
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ success: true, token, message: 'Login successful' }));
     } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ success: false, error: e.message }));
     }
 };

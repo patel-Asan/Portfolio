@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const cors = require('cors');
 
 let connected = false;
 const connect = async () => {
@@ -8,15 +7,23 @@ const connect = async () => {
     connected = true;
 };
 
-const corsHandler = (req, res) => new Promise((resolve) => {
-    cors({ origin: '*', methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] })(req, res, () => resolve());
-});
-
 module.exports = async (req, res) => {
-    await corsHandler(req, res);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
-    if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method Not Allowed' });
+    if (req.method === 'OPTIONS') {
+        res.statusCode = 200;
+        res.end();
+        return;
+    }
+
+    if (req.method !== 'POST') {
+        res.statusCode = 405;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ success: false, message: 'Method Not Allowed' }));
+        return;
+    }
 
     try {
         await connect();
@@ -30,8 +37,18 @@ module.exports = async (req, res) => {
         }));
 
         const { name, email, subject, message } = req.body;
-        if (!name || !email || !message) return res.status(400).json({ success: false, message: 'All fields required' });
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ success: false, message: 'Invalid email' });
+        if (!name || !email || !message) {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: false, message: 'All fields required' }));
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ success: false, message: 'Invalid email' }));
+            return;
+        }
 
         const msg = new Message({ name: name.trim(), email: email.trim(), subject: (subject || '').trim(), message: message.trim() });
         await msg.save();
@@ -47,9 +64,13 @@ module.exports = async (req, res) => {
             });
         }
 
-        res.status(201).json({ success: true, message: 'Message sent successfully' });
+        res.statusCode = 201;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ success: true, message: 'Message sent successfully' }));
     } catch (e) {
         console.error(e);
-        res.status(500).json({ success: false, message: 'Error sending message' });
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ success: false, message: 'Error sending message' }));
     }
 };
