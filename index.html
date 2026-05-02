@@ -839,7 +839,7 @@
                         <span>Available for remote work</span>
                     </div>
                 </div>
-                <form class="contact-form pro-form" id="contactForm">
+                <form class="contact-form pro-form" id="contactForm" action="https://formsubmit.co/patelasan91@gmail.com" method="POST">
                     <!-- Name & Email Row -->
                     <div class="form-row">
                         <div class="form-group floating-group">
@@ -867,6 +867,11 @@
                         <div class="char-counter"><span id="charCount">0</span>/500</div>
                     </div>
                     
+                    <!-- Hidden fields for Formsubmit.co -->
+                    <input type="hidden" name="_captcha" value="false">
+                    <input type="hidden" name="_template" value="table">
+                    <input type="hidden" name="_subject" value="New Portfolio Contact!">
+                    
                     <!-- Submit Button -->
                     <button type="submit" class="btn-submit pro-submit" id="submitButton">
                         <span class="btn-text">Send Message</span>
@@ -876,11 +881,6 @@
                     
                     <!-- Status Message -->
                     <div id="formStatus" class="form-status"></div>
-                    
-                    <!-- Auto-save indicator -->
-                    <div class="autosave-status" id="autosaveStatus">
-                        <i class="fas fa-check-circle"></i> Draft saved
-                    </div>
                 </form>
             </div>
         </div>
@@ -980,8 +980,6 @@
 
     <!-- Scripts -->
     <script>
-        const API_URL = 'https://portfolio-kjkrp23fa-asans-projects-69ce1902.vercel.app';
-
         // Navbar scroll effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
@@ -1787,58 +1785,50 @@
         `;
         document.head.appendChild(confettiStyle);
 
-        // Contact form submission with email validation
+        // Contact form submission
         document.getElementById('contactForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitButton = document.getElementById('submitButton');
             const formStatus = document.getElementById('formStatus');
+            const form = e.target;
             
-            const email = e.target.email.value.trim();
-            
-            // Email validation regex pattern
+            const email = form.email.value.trim();
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             
-            // Check if email is valid
             if (!emailPattern.test(email)) {
                 formStatus.className = 'form-status error';
                 formStatus.textContent = 'Please enter a valid email address (e.g., name@example.com)';
                 showToast('Invalid email address!', 'error', 3000);
-                e.target.email.focus();
-                return; // Stop submission
+                form.email.focus();
+                return;
             }
             
             submitButton.disabled = true;
             submitButton.innerHTML = 'Sending... <i class="fas fa-spinner fa-spin"></i>';
 
-            const formData = {
-                name: e.target.name.value.trim(),
-                email: email,
-                subject: e.target.subject.value.trim(),
-                message: e.target.message.value.trim()
-            };
+            const formData = new FormData(form);
 
             try {
-                const response = await fetch(`${API_URL}/api/messages`, {
+                const response = await fetch(form.action, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
                 });
-                const data = await response.json();
 
-                if (response.ok && data.success) {
+                if (response.ok) {
                     formStatus.className = 'form-status success';
                     formStatus.textContent = 'Message sent successfully!';
                     triggerConfetti();
                     showToast('🎉 Message sent successfully!', 'success', 5000);
                     clearDraft();
-                    e.target.reset();
+                    form.reset();
                     document.querySelectorAll('.floating-group').forEach(group => {
                         group.classList.remove('valid', 'invalid');
                     });
                     charCount.textContent = '0';
                 } else {
                     formStatus.className = 'form-status error';
-                    formStatus.textContent = data.message || 'Error sending message.';
+                    formStatus.textContent = 'Error sending message. Please try again.';
                 }
             } catch (error) {
                 formStatus.className = 'form-status error';
