@@ -1,36 +1,18 @@
+const mongoose = require('mongoose');
+
+let connected = false;
+const connect = async () => {
+    if (connected) return;
+    await mongoose.connect(process.env.MONGODB_URI);
+    connected = true;
+};
+
 module.exports = async (req, res) => {
-    const send = (status, body) => {
-        res.writeHead(status, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Max-Age': '86400',
-            'Content-Type': 'application/json'
-        });
-        res.end(JSON.stringify(body));
-    };
-
-    if (req.method === 'OPTIONS') {
-        res.writeHead(204, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Max-Age': '86400'
-        });
-        res.end();
-        return;
-    }
-
-    if (req.method !== 'POST') return send(405, { success: false, message: 'Method Not Allowed' });
-
-    const mongoose = require('mongoose');
-
-    let connected = false;
-    const connect = async () => {
-        if (connected) return;
-        await mongoose.connect(process.env.MONGODB_URI);
-        connected = true;
-    };
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') return res.status(204).end();
+    if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method Not Allowed' });
 
     try {
         await connect();
@@ -43,16 +25,15 @@ module.exports = async (req, res) => {
             createdAt: { type: Date, default: Date.now }
         }));
 
-        const body = JSON.parse(req.body || '{}');
-        const { name, email, subject, message } = body;
-        if (!name || !email || !message) return send(400, { success: false, message: 'All fields required' });
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return send(400, { success: false, message: 'Invalid email' });
+        const { name, email, subject, message } = req.body;
+        if (!name || !email || !message) return res.status(400).json({ success: false, message: 'All fields required' });
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ success: false, message: 'Invalid email' });
 
         const msg = new Message({ name: name.trim(), email: email.trim(), subject: (subject || '').trim(), message: message.trim() });
         await msg.save();
 
+        const nodemailer = require('nodemailer');
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-            const nodemailer = require('nodemailer');
             const transport = nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS } });
             await transport.sendMail({
                 from: process.env.EMAIL_USER,
@@ -62,9 +43,9 @@ module.exports = async (req, res) => {
             });
         }
 
-        send(201, { success: true, message: 'Message sent successfully' });
+        res.status(201).json({ success: true, message: 'Message sent successfully' });
     } catch (e) {
         console.error(e);
-        send(500, { success: false, message: 'Error: ' + e.message });
+        res.status(500).json({ success: false, message: 'Error sending message' });
     }
 };
