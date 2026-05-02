@@ -1,29 +1,7 @@
 [build]
-  functions = "netlify/functions"
-
-[functions]
-  node_bundler = "esbuild"
+  publish = "."
 
 [[redirects]]
-  from = "/api/messages"
-  to = "/.netlify/functions/send-message"
+  from = "/*"
+  to = "/index.html"
   status = 200
-  force = true
-
-[[redirects]]
-  from = "/api/admin/login"
-  to = "/.netlify/functions/login"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/api/admin/messages"
-  to = "/.netlify/functions/admin-messages"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/api/admin/messages/*"
-  to = "/.netlify/functions/admin-messages"
-  status = 200
-  force = true

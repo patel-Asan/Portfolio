@@ -979,6 +979,8 @@
 
     <!-- Scripts -->
     <script>
+        const API_URL = 'https://YOUR-RENDER-APP.onrender.com';
+
         // Navbar scroll effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
@@ -1815,7 +1817,7 @@
             };
 
             try {
-                const response = await fetch('/api/messages', {
+                const response = await fetch(`${API_URL}/api/messages`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)

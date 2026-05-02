@@ -1078,6 +1078,7 @@
     </div>
 
     <script>
+        const API_URL = 'https://YOUR-RENDER-APP.onrender.com';
         let isLoggedIn = false;
 
         // Preloader
@@ -1151,7 +1152,7 @@
             loginButton.innerHTML = '<div class="loading"></div>';
             loginButton.disabled = true;
 
-            fetch('/api/admin/login', {
+            fetch(`${API_URL}/api/admin/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1203,7 +1204,7 @@
             refreshButton.innerHTML = '<div class="loading"></div>';
             refreshButton.disabled = true;
 
-            fetch('/api/admin/messages', {
+            fetch(`${API_URL}/api/admin/messages`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -1300,7 +1301,7 @@
             button.innerHTML = '<div class="loading"></div>';
             button.disabled = true;
 
-            fetch(`/api/admin/messages/${messageId}`, {
+            fetch(`${API_URL}/api/admin/messages/${messageId}`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -1343,7 +1344,7 @@
             button.innerHTML = '<div class="loading"></div>';
             button.disabled = true;
 
-            fetch(`/api/admin/messages/${messageId}`, {
+            fetch(`${API_URL}/api/admin/messages/${messageId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -1375,7 +1376,7 @@
         // Check if already logged in
         const token = localStorage.getItem('adminToken');
         if (token) {
-            fetch('/api/admin/messages', {
+            fetch(`${API_URL}/api/admin/messages`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
