@@ -5,49 +5,33 @@ require('dotenv').config();
 
 async function setup() {
     try {
-        // Connect to MongoDB
-        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/portfolio', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        await mongoose.connect(process.env.MONGODB_URI);
         console.log('Connected to MongoDB');
 
-        // Check if admin user already exists
-        const existingAdmin = await User.findOne({ username: 'admin' });
+        const existingAdmin = await User.findOne({ username: 'Asan' });
         
         if (existingAdmin) {
-            console.log('Admin user already exists. Resetting password...');
-            const adminPassword = 'admin123'; // You can change this password
-            const hashedPassword = await bcrypt.hash(adminPassword, 10);
-            existingAdmin.password = hashedPassword;
+            console.log('User exists. Resetting password...');
+            existingAdmin.password = await bcrypt.hash('AsanTest@123', 10);
             await existingAdmin.save();
-            console.log('Admin password reset successfully');
+            console.log('Password updated');
         } else {
-            // Create new admin user
-            const adminPassword = 'admin123'; // You can change this password
-            const hashedPassword = await bcrypt.hash(adminPassword, 10);
-            
-            const adminUser = new User({
-                username: 'admin',
-                password: hashedPassword
-            });
-
+            const hashedPassword = await bcrypt.hash('AsanTest@123', 10);
+            const adminUser = new User({ username: 'Asan', password: hashedPassword });
             await adminUser.save();
-            console.log('Admin user created successfully');
+            console.log('User created');
         }
 
         console.log('\nAdmin Login Credentials:');
-        console.log('Username: admin');
-        console.log('Password: admin123');
-        console.log('\nPlease save these credentials. You will need them to log in.');
+        console.log('Username: Asan');
+        console.log('Password: AsanTest@123');
 
-        // Close the connection
         await mongoose.connection.close();
-        console.log('\nSetup completed successfully');
+        console.log('\nDone');
     } catch (error) {
-        console.error('Setup failed:', error);
+        console.error('Failed:', error);
         process.exit(1);
     }
 }
 
-setup(); 
+setup();

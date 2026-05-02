@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
     <!-- Preloader -->
@@ -979,6 +980,14 @@
 
     <!-- Scripts -->
     <script>
+        // EmailJS init - Replace with your public key from emailjs.com
+        (function(){
+            emailjs.init("YOUR_PUBLIC_KEY");
+        })();
+
+        const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
+        const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+
         const API_URL = 'https://YOUR-RENDER-APP.onrender.com';
 
         // Navbar scroll effect
@@ -1817,15 +1826,15 @@
             };
 
             try {
-                const response = await fetch(`${API_URL}/api/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    from_name: e.target.name.value.trim(),
+                    from_email: email,
+                    subject: e.target.subject.value.trim(),
+                    message: e.target.message.value.trim()
                 });
-                const data = await response.json();
-                if (response.ok) {
-                    formStatus.className = 'form-status success';
-                    formStatus.textContent = 'Message sent successfully!';
+
+                formStatus.className = 'form-status success';
+                formStatus.textContent = 'Message sent successfully!';
                     
                     // Trigger confetti celebration
                     triggerConfetti();

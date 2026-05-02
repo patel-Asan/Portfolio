@@ -4,6 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const nodemailer = require('nodemailer');
 const User = require('./models/User');
 const Message = require('./models/Message');
 
@@ -55,46 +56,74 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+// Nodemailer Transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
 // Contact form endpoint
 app.post('/api/messages', async (req, res) => {
     try {
-        const { name, email, message } = req.body;
+        const { name, email, subject, message } = req.body;
 
-        // Validate input
         if (!name || !email || !message) {
-            console.log('Message validation failed:', { name, email, message });
             return res.status(400).json({ 
                 success: false, 
                 message: 'All fields are required' 
             });
         }
 
-        // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            console.log('Invalid email format:', email);
             return res.status(400).json({ 
                 success: false, 
                 message: 'Invalid email format' 
             });
         }
 
-        // Create and save message
         const newMessage = new Message({ 
             name: name.trim(), 
             email: email.trim(), 
+            subject: (subject || '').trim(),
             message: message.trim() 
         });
 
         await newMessage.save();
-        console.log('Message saved successfully:', { name, email });
+
+        // Send email notification
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_USER,
+            subject: `New Portfolio Message from ${name.trim()}${subject ? ' - ' + subject.trim() : ''}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+                    <h2 style="color: #0ea5e9; border-bottom: 2px solid #0ea5e9; padding-bottom: 10px;">📩 New Contact Form Message</h2>
+                    <table style="width: 100%; margin-top: 20px;">
+                        <tr><td style="padding: 8px 0; font-weight: bold; color: #64748b;">Name:</td><td style="padding: 8px 0;">${name.trim()}</td></tr>
+                        <tr><td style="padding: 8px 0; font-weight: bold; color: #64748b;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${email.trim()}">${email.trim()}</a></td></tr>
+                        ${subject ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #64748b;">Subject:</td><td style="padding: 8px 0;">${subject.trim()}</td></tr>` : ''}
+                        <tr><td style="padding: 8px 0; font-weight: bold; color: #64748b;">Message:</td><td style="padding: 8px 0;">${message.trim()}</td></tr>
+                        <tr><td style="padding: 8px 0; font-weight: bold; color: #64748b;">Date:</td><td style="padding: 8px 0;">${new Date().toLocaleString()}</td></tr>
+                    </table>
+                    <hr style="margin-top: 20px; border: none; border-top: 1px solid #e2e8f0;">
+                    <p style="color: #94a3b8; font-size: 12px; margin-top: 15px;">This message was sent from your portfolio contact form.</p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('Message saved and email sent:', { name, email });
         
         res.status(201).json({ 
             success: true, 
             message: 'Message sent successfully' 
         });
     } catch (error) {
-        console.error('Error saving message:', error);
+        console.error('Error:', error);
         res.status(500).json({ 
             success: false, 
             message: 'Error sending message. Please try again.' 

@@ -1056,6 +1056,7 @@
                                 <th>Date</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Subject</th>
                                 <th>Message</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -1231,6 +1232,7 @@
                         <td>${new Date(message.createdAt).toLocaleString()}</td>
                         <td>${message.name}</td>
                         <td>${message.email}</td>
+                        <td>${message.subject || '-'}</td>
                         <td>${message.message}</td>
                         <td>
                             <span class="status ${message.status === 'read' ? 'status-read' : 'status-unread'}">
