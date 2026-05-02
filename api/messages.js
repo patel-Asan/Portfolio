@@ -8,20 +8,12 @@ const connect = async () => {
 };
 
 module.exports = async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
     if (req.method === 'OPTIONS') {
-        res.statusCode = 200;
-        res.end();
+        res.status(200).end();
         return;
     }
-
     if (req.method !== 'POST') {
-        res.statusCode = 405;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ success: false, message: 'Method Not Allowed' }));
+        res.status(405).json({ success: false, message: 'Method Not Allowed' });
         return;
     }
 
@@ -38,15 +30,11 @@ module.exports = async (req, res) => {
 
         const { name, email, subject, message } = req.body;
         if (!name || !email || !message) {
-            res.statusCode = 400;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ success: false, message: 'All fields required' }));
+            res.status(400).json({ success: false, message: 'All fields required' });
             return;
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            res.statusCode = 400;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ success: false, message: 'Invalid email' }));
+            res.status(400).json({ success: false, message: 'Invalid email' });
             return;
         }
 
@@ -64,13 +52,9 @@ module.exports = async (req, res) => {
             });
         }
 
-        res.statusCode = 201;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ success: true, message: 'Message sent successfully' }));
+        res.status(201).json({ success: true, message: 'Message sent successfully' });
     } catch (e) {
         console.error(e);
-        res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ success: false, message: 'Error sending message' }));
+        res.status(500).json({ success: false, message: 'Error sending message' });
     }
 };

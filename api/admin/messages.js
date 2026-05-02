@@ -25,13 +25,8 @@ const auth = (req) => {
 };
 
 module.exports = async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
     if (req.method === 'OPTIONS') {
-        res.statusCode = 200;
-        res.end();
+        res.status(200).end();
         return;
     }
 
@@ -41,42 +36,30 @@ module.exports = async (req, res) => {
 
         if (req.method === 'GET') {
             const messages = await Message.find().sort({ createdAt: -1 });
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ success: true, messages }));
+            res.status(200).json({ success: true, messages });
             return;
         }
 
         const id = req.url.split('/').pop().split('?')[0];
         if (!id) {
-            res.statusCode = 400;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ success: false, message: 'ID required' }));
+            res.status(400).json({ success: false, message: 'ID required' });
             return;
         }
 
         if (req.method === 'PATCH') {
             const msg = await Message.findByIdAndUpdate(id, { status: req.body.status }, { new: true });
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ success: true, message: msg }));
+            res.status(200).json({ success: true, message: msg });
             return;
         }
 
         if (req.method === 'DELETE') {
             await Message.findByIdAndDelete(id);
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ success: true, message: 'Message deleted' }));
+            res.status(200).json({ success: true, message: 'Message deleted' });
             return;
         }
 
-        res.statusCode = 405;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ success: false, error: 'Method Not Allowed' }));
+        res.status(405).json({ success: false, error: 'Method Not Allowed' });
     } catch (e) {
-        res.statusCode = e.message.includes('jwt') || e.message === 'No token' ? 401 : 500;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ success: false, error: e.message }));
+        res.status(e.message.includes('jwt') || e.message === 'No token' ? 401 : 500).json({ success: false, error: e.message });
     }
 };
