@@ -25,9 +25,11 @@ const auth = (req) => {
 };
 
 module.exports = async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    const origin = req.headers.origin || req.headers.Origin || '*';
+    res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     if (req.method === 'OPTIONS') {
         return res.status(200).json({ success: true });
     }
