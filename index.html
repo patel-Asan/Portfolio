@@ -1855,10 +1855,6 @@
                     
                     // Reset character counter
                     charCount.textContent = '0';
-                } else {
-                    formStatus.className = 'form-status error';
-                    formStatus.textContent = data.message || 'Error sending message.';
-                }
             } catch (error) {
                 formStatus.className = 'form-status error';
                 formStatus.textContent = 'Network error. Please try again.';
