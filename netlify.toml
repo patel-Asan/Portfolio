@@ -8,3 +8,22 @@
   from = "/api/messages"
   to = "/.netlify/functions/send-message"
   status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/login"
+  to = "/.netlify/functions/login"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/messages"
+  to = "/.netlify/functions/admin-messages"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/messages/*"
+  to = "/.netlify/functions/admin-messages"
+  status = 200
+  force = true
