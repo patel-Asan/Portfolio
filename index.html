@@ -230,7 +230,7 @@
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
-                        <span class="stat-count" id="visitorCount">0</span>
+                        <span class="stat-count" id="visitorCount">...</span>
                         <span class="stat-text">Visitors</span>
                     </div>
                 </div>
@@ -2028,17 +2028,20 @@
         async function updateVisitorCount() {
             const visitorCountElement = document.getElementById('visitorCount');
             if (!visitorCountElement) return;
+            visitorCountElement.textContent = '...';
 
             try {
                 const response = await fetch('https://api.countapi.xyz/hit/asan-portfolio-visitors/site-visits');
                 const data = await response.json();
                 if (data && typeof data.value === 'number') {
                     visitorCountElement.textContent = data.value.toLocaleString();
+                } else if (data && typeof data.hit === 'number') {
+                    visitorCountElement.textContent = data.hit.toLocaleString();
                 } else {
-                    visitorCountElement.textContent = '1000+';
+                    visitorCountElement.textContent = 'N/A';
                 }
             } catch (error) {
-                visitorCountElement.textContent = '1000+';
+                visitorCountElement.textContent = 'N/A';
                 console.error('Visitor count load failed:', error);
             }
         }
